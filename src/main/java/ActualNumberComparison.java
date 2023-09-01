@@ -1,3 +1,4 @@
+import custom.Worker;
 import org.apache.poi.hssf.usermodel.HSSFRow;
 import org.apache.poi.hssf.usermodel.HSSFSheet;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
@@ -5,6 +6,8 @@ import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -13,9 +16,12 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Objects;
+
 public class ActualNumberComparison {
+    static Logger logger = LoggerFactory.getLogger(ActualNumberComparison.class);
+
     public static void main(String[] args) throws IOException {
+        logger.info("GetStart");
         Workbook everyday = getSheets(new File(args[0]));
         Sheet datatypeSheet = everyday.getSheetAt(1);
         Iterator<Row> excelRowsFromEveryDaySheet = datatypeSheet.iterator();
@@ -23,13 +29,16 @@ public class ActualNumberComparison {
         Sheet datatypeSheet1 = fact.getSheetAt(0);
         Iterator<Row> excelRowsFromFactSheet = datatypeSheet1.iterator();
         int rowsNumberEveryDay = getCount(excelRowsFromEveryDaySheet);
+        logger.info("rowsNumberEveryDay {}", rowsNumberEveryDay);
         int rowsNumberFact = getCount(excelRowsFromFactSheet);
+        logger.info("rowsNumberFact {}" , rowsNumberFact);
         if (rowsNumberFact<rowsNumberEveryDay){
             getDifference(everyday,fact);
         }
         else {
             getDifference(fact,everyday);
         }
+        logger.info("fileCreated");
     }
     public static Workbook getSheets(File path) throws IOException {
        // File file = new File("/Users/aleksejpikulik/OK-UKPG1/"+name);
@@ -59,7 +68,7 @@ public class ActualNumberComparison {
                     initialsEveryDay.add(worker);
                 }
             } catch (Exception e) {
-                e.printStackTrace();
+                logger.warn(e.getMessage());
             }
         }
         Sheet datatypeSheet1 = sheetPeopleFact.getSheetAt(0);
@@ -73,7 +82,7 @@ public class ActualNumberComparison {
                 worker.setTitle(next.getCell(4).getStringCellValue());
                 initialsFact.add(worker);
             } catch (Exception e) {
-                e.printStackTrace();
+                logger.warn(e.getMessage());
             }
         }
         List<Worker> filterSheetPeopleEveryDay = new ArrayList<>(initialsEveryDay);
@@ -110,41 +119,5 @@ public class ActualNumberComparison {
         FileOutputStream fileOut = new FileOutputStream("personmistake.xls");
         hwb.write(fileOut);
         fileOut.close();
-    }
-}
-class Worker{
-    private String structure;
-    private String name;
-    private String title;
-    public Worker() {
-    }
-    public String getStructure() {
-        return structure;
-    }
-    public void setStructure(String structure) {
-        this.structure = structure;
-    }
-    public String getName() {
-        return name;
-    }
-    public void setName(String name) {
-        this.name = name;
-    }
-    public String getTitle() {
-        return title;
-    }
-    public void setTitle(String title) {
-        this.title = title;
-    }
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        Worker worker = (Worker) o;
-        return Objects.equals(name, worker.name);
-    }
-    @Override
-    public int hashCode() {
-        return Objects.hash(name);
     }
 }
